@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -61,6 +61,8 @@ class PrecoHistorico(Base):
     produto_id: Mapped[int] = mapped_column(ForeignKey("produtos.id", ondelete="CASCADE"), index=True)
     preco: Mapped[float] = mapped_column(Float)
     coletado_em: Mapped[datetime] = mapped_column(DateTime, default=agora, index=True)
+    # True = preço inventado para a apresentação (app/simulacao.py), não coletado de verdade.
+    simulado: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     produto: Mapped[Produto] = relationship(back_populates="precos")
 

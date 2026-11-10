@@ -36,9 +36,26 @@ uvicorn app.main:app --reload
 
 ## Histórico simulado para a apresentação
 
-Um produto aberto pela primeira vez não tem histórico, e a análise só consegue usar o desconto
-anunciado pela loja (ou responder "Coletando histórico"). Para a apresentação mostrar a análise
-completa, com gráfico:
+**Automático:** quando a API vê um produto pela **primeira vez** (nenhum preço salvo), ela gera
+**30 dias de preços sintéticos** terminando no preço real de agora. Assim, qualquer produto aberto
+na apresentação já mostra gráfico e análise completa.
+
+- Produtos que já têm preço real salvo (ex.: os do coletor) **não** recebem dados sintéticos.
+- O perfil da curva acompanha a página: se a loja anuncia desconto grande, a curva é de queda;
+  senão, é sorteado (queda, alta ou estável), sempre igual para o mesmo produto.
+- Cada preço sintético fica marcado no banco (`simulado = true`). A análise devolve
+  `historico_simulado: true`, a extensão avisa "Histórico SIMULADO para demonstração" e desenha
+  essa parte do gráfico **tracejada**.
+- **Desligar:** variável de ambiente `ATALA_HISTORICO_SIMULADO=0` (no Render, em *Environment*).
+- **Apagar todos os preços sintéticos** depois da apresentação (os reais ficam):
+
+  ```bash
+  python seed.py --limpar-simulados
+  ```
+
+  No servidor, rode do seu PC com `$env:DATABASE_URL="CONNECTION-STRING-DO-NEON"` antes.
+
+**Manual (seed):** para escolher a curva de um produto ou criar a conta demo:
 
 - **Produto que já foi aberto pela extensão** (o jeito mais fácil): abra a página do produto com a
   extensão uma vez e rode:

@@ -3,6 +3,8 @@ import os
 # Precisa vir antes de importar o app: hash de senha rápido e chave fixa nos testes.
 os.environ.setdefault("ATALA_PBKDF2_ITERACOES", "1000")
 os.environ.setdefault("ATALA_JWT_SECRET", "chave-so-para-testes")
+# Histórico sintético desligado por padrão; os testes de test_simulacao.py ligam.
+os.environ.setdefault("ATALA_HISTORICO_SIMULADO", "0")
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402

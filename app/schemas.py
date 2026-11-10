@@ -90,6 +90,9 @@ class Analise(BaseModel):
     base: Literal["historico", "desconto_da_pagina", "sem_dados"] = Field(
         description="De onde veio a conclusão: do histórico de preços ou só do desconto da página"
     )
+    historico_simulado: bool = Field(
+        default=False, description="True se parte do histórico usado é sintético (para demonstração)"
+    )
     estatisticas: Estatisticas
 
 
@@ -116,6 +119,7 @@ class PontoHistorico(BaseModel):
 
     preco: float
     coletado_em: datetime
+    simulado: bool = False
 
 
 # ---------- Histórico do usuário ----------

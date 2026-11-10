@@ -41,6 +41,10 @@ JWT_VALIDADE_DIAS = int(os.getenv("ATALA_JWT_VALIDADE_DIAS", "30"))
 # Custo do hash de senha (PBKDF2-SHA256). 600 mil é o recomendado pela OWASP.
 PBKDF2_ITERACOES = int(os.getenv("ATALA_PBKDF2_ITERACOES", "600000"))
 
+# Gera 30 dias de histórico SINTÉTICO quando um produto é visto pela primeira vez
+# (para a apresentação). 1 = ligado, 0 = desligado. Veja app/simulacao.py.
+HISTORICO_SIMULADO = os.getenv("ATALA_HISTORICO_SIMULADO", "1") == "1"
+
 # Origens web extras liberadas no CORS, separadas por vírgula (ex.: o domínio de um app web).
 # Extensões do Chrome e localhost já são liberadas. Apps mobile nativos não usam CORS.
 CORS_ORIGENS_EXTRAS = [o.strip() for o in os.getenv("ATALA_CORS_ORIGENS", "").split(",") if o.strip()]

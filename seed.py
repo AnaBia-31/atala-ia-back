@@ -33,31 +33,13 @@ from app.database import SessionLocal, criar_tabelas
 from app.models import Alerta, PrecoHistorico, Produto, Usuario, Visualizacao, agora
 from app.seguranca import gerar_hash_senha
 from app.servicos import normalizar_url
+from app.simulacao import INICIO_POR_PERFIL, gerar_precos
 
 # Conta só para a apresentação. Não use essa senha em nenhum outro lugar.
 EMAIL_DEMO = "demo@atala.ia"
 SENHA_DEMO = "demo1234"
 ARQUIVO_PRODUTOS = Path(__file__).with_name("demo_produtos.json")
 DIAS = 60
-
-# Preço do início do período em relação ao preço final, para cada perfil.
-INICIO_POR_PERFIL = {"queda": 1.30, "alta": 0.80, "estavel": 1.0}
-
-
-def gerar_precos(final: float, perfil: str, rng: random.Random) -> list[float]:
-    """Caminho de preços com ruído e uma promoção curta no meio, terminando em `final`."""
-    base = final * INICIO_POR_PERFIL[perfil]
-    precos = []
-    for i in range(DIAS):
-        progresso = i / (DIAS - 1)
-        preco = base + (final - base) * progresso
-        ruido = 0.01 if perfil == "estavel" else 0.035
-        preco *= 1 + rng.uniform(-ruido, ruido)
-        if perfil != "estavel" and DIAS * 0.4 < i < DIAS * 0.45:  # promoção relâmpago
-            preco *= 0.88
-        precos.append(round(preco, 2))
-    precos[-1] = round(final, 2)
-    return precos
 
 
 def conta_demo(db) -> Usuario:
@@ -101,10 +83,10 @@ def simular(db, item: dict, usuario: Usuario, rng: random.Random, posicao: int) 
 
     db.execute(delete(PrecoHistorico).where(PrecoHistorico.produto_id == produto.id))
     hoje = agora()
-    for d, preco in enumerate(gerar_precos(final, perfil, rng)):
+    for d, preco in enumerate(gerar_precos(final, perfil, rng, DIAS)):
         horas = 0 if d == DIAS - 1 else rng.randint(1, 5)
         coletado = hoje - timedelta(days=DIAS - 1 - d, hours=horas)
-        db.add(PrecoHistorico(produto_id=produto.id, preco=preco, coletado_em=coletado))
+        db.add(PrecoHistorico(produto_id=produto.id, preco=preco, coletado_em=coletado, simulado=True))
 
     db.execute(
         delete(Visualizacao).where(Visualizacao.produto_id == produto.id, Visualizacao.usuario_id == usuario.id)
@@ -121,7 +103,22 @@ def main() -> None:
     parser.add_argument("--url", help="URL de um produto (de preferência já aberto pela extensão)")
     parser.add_argument("--perfil", default="queda", choices=list(INICIO_POR_PERFIL))
     parser.add_argument("--alvo", type=float, help="Preço-alvo do alerta da conta demo")
+    parser.add_argument(
+        "--limpar-simulados", action="store_true",
+        help="Apaga TODOS os preços simulados do banco (use depois da apresentação)",
+    )
     args = parser.parse_args()
+
+    if args.limpar_simulados:
+        criar_tabelas()
+        db = SessionLocal()
+        try:
+            apagados = db.execute(delete(PrecoHistorico).where(PrecoHistorico.simulado.is_(True))).rowcount
+            db.commit()
+            print(f"{apagados} preços simulados apagados. Os preços reais continuam no banco.")
+        finally:
+            db.close()
+        return
 
     if args.url:
         itens = [{"url": args.url, "perfil": args.perfil, "preco_alvo": args.alvo}]

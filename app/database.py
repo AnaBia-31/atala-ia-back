@@ -35,3 +35,16 @@ def criar_tabelas():
     from app import models  # noqa: F401  (registra as tabelas no Base)
 
     Base.metadata.create_all(bind=engine)
+    migrar_colunas_novas(engine)
+
+
+def migrar_colunas_novas(engine):
+    """create_all não altera tabelas que já existem: adiciona aqui as colunas criadas depois."""
+    from sqlalchemy import inspect, text
+
+    colunas = {c["name"] for c in inspect(engine).get_columns("precos_historico")}
+    if "simulado" not in colunas:
+        with engine.begin() as conexao:
+            conexao.execute(
+                text("ALTER TABLE precos_historico ADD COLUMN simulado BOOLEAN NOT NULL DEFAULT FALSE")
+            )
