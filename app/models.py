@@ -42,6 +42,8 @@ class Produto(Base):
     titulo: Mapped[str] = mapped_column(String(500))
     imagem_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     moeda: Mapped[str] = mapped_column(String(3), default="BRL")
+    # Último preço riscado visto na página ("de R$ X"). Vazio se a loja não mostra desconto.
+    preco_original: Mapped[float | None] = mapped_column(Float, nullable=True)
     criado_em: Mapped[datetime] = mapped_column(DateTime, default=agora)
     atualizado_em: Mapped[datetime] = mapped_column(DateTime, default=agora, onupdate=agora)
 

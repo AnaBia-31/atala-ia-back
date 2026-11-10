@@ -90,3 +90,12 @@ def test_alertas_exigem_login(client):
 
 def test_produto_inexistente(client):
     assert client.get("/produtos/999").status_code == 404
+
+
+def test_observar_com_preco_riscado_responde_na_primeira_visita(client):
+    r = client.post(
+        "/produtos/observar",
+        json={"url": "https://loja.com/p", "loja": "Loja", "titulo": "P", "preco": 75, "preco_original": 100},
+    ).json()
+    assert r["analise"]["veredito"] == "comprar"
+    assert r["analise"]["estatisticas"]["desconto_pct"] == 25.0

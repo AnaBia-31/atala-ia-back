@@ -1,0 +1,34 @@
+[
+  {
+    "url": "https://demo.atala-ia.local/fone",
+    "titulo": "Fone de ouvido bluetooth",
+    "loja": "Mercado Livre",
+    "preco_final": 319.99,
+    "perfil": "queda",
+    "preco_alvo": 250.0
+  },
+  {
+    "url": "https://demo.atala-ia.local/copo",
+    "titulo": "Copo Stanley",
+    "loja": "Amazon",
+    "preco_final": 239.90,
+    "perfil": "alta",
+    "preco_alvo": 150.0
+  },
+  {
+    "url": "https://demo.atala-ia.local/tinta",
+    "titulo": "Tinta Guache Himi",
+    "loja": "Shopee",
+    "preco_final": 89.90,
+    "perfil": "estavel",
+    "preco_alvo": 60.0
+  },
+  {
+    "url": "https://demo.atala-ia.local/mouse",
+    "titulo": "Mouse Classic Box",
+    "loja": "Mercado Livre",
+    "preco_final": 15.00,
+    "perfil": "queda",
+    "preco_alvo": 10.0
+  }
+]

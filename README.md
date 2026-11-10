@@ -31,9 +31,28 @@ uvicorn app.main:app --reload
 - API: http://127.0.0.1:8000
 - Documentação interativa: http://127.0.0.1:8000/docs (dá para testar todas as rotas por ali)
 - Localmente o banco é um arquivo `atala.db` (SQLite), criado sozinho.
-- `python seed.py` cria **dados fictícios** para a apresentação: os 4 produtos do protótipo
-  com 60 dias de preços inventados e uma conta de demonstração **`demo@atala.ia` / `demo1234`**
-  com histórico e alertas. Pode rodar de novo quando quiser: ele recria os dados.
+- `python seed.py` cria **histórico de preços simulado** para a apresentação e uma conta de
+  demonstração **`demo@atala.ia` / `demo1234`** com histórico e alertas. Veja abaixo.
+
+## Histórico simulado para a apresentação
+
+Um produto aberto pela primeira vez não tem histórico, e a análise só consegue usar o desconto
+anunciado pela loja (ou responder "Coletando histórico"). Para a apresentação mostrar a análise
+completa, com gráfico:
+
+- **Produto que já foi aberto pela extensão** (o jeito mais fácil): abra a página do produto com a
+  extensão uma vez e rode:
+
+  ```bash
+  python seed.py --url "https://www.amazon.com.br/dp/B0BTYCRJSS" --perfil queda --alvo 120
+  ```
+
+  O histórico termina no preço real que a extensão viu. `--perfil` pode ser `queda` (indica
+  comprar), `alta` (indica esperar) ou `estavel`. `--alvo` cria um alerta na conta demo.
+- **Lista de produtos:** coloque as URLs reais em [`demo_produtos.json`](demo_produtos.json) e
+  rode `python seed.py`.
+
+Rodar de novo gera outro histórico. Os preços são **fictícios**: deixem isso claro na apresentação.
 
 Testes:
 
@@ -67,7 +86,7 @@ rotas protegidas.
 | POST | `/auth/login` | Login | Devolve o token |
 | GET | `/usuarios/eu` 🔒 | Ajustes | Dados e preferências da conta |
 | PATCH | `/usuarios/eu` 🔒 | Ajustes | Salva preferências: `alerta_queda`, `resumo_semanal`, `analisar_ao_abrir`, `intervalo_verificacao_horas` (6/12/24), `moeda` (BRL/USD/EUR/GBP), `nome` |
-| POST | `/produtos/observar` 🔓 | Produto | Envia `{url, loja, titulo, preco, imagem_url?, moeda?}` lido da página. Grava o preço e devolve a análise. Com login, o produto também entra no Histórico |
+| POST | `/produtos/observar` 🔓 | Produto | Envia `{url, loja, titulo, preco, preco_original?, imagem_url?, moeda?}` lido da página (`preco_original` é o preço riscado). Grava o preço e devolve a análise. Com login, o produto também entra no Histórico |
 | GET | `/produtos/{id}` 🔓 | Produto | Produto + análise (+ `alerta_ativo`, se logado) |
 | GET | `/produtos/{id}/historico?dias=30` | Produto (gráfico) | Lista de `{preco, coletado_em}` |
 | GET | `/historico?dias=7` 🔒 | Histórico | Produtos analisados no período e quanto caíram |
@@ -103,31 +122,103 @@ explicáveis, que funcionam desde o primeiro dia e sempre mostram os motivos da 
 | 5% ou mais acima da mediana do mês | a favor de **esperar** |
 | Preço caindo nas últimas 2 semanas | a favor de **esperar** (pode cair mais) |
 | Preço subindo nas últimas 2 semanas | a favor de **comprar** |
+| A loja anuncia 15% ou mais de desconto (preço riscado) | a favor de **comprar** |
 | Faltam até 21 dias para a Black Friday | a favor de **esperar** |
 | Variação do mês menor que 5% | preço "estável" (sem sinal) |
 
 As regras somam pontos num placar: ≥ 0,25 → `comprar`, ≤ −0,25 → `esperar`, no meio →
-`neutro`. Com menos de 3 preços a resposta é `sem_dados`. Os limites ficam no topo do arquivo.
+`neutro`. Os limites ficam no topo do arquivo.
+
+**Sem histórico** (menos de 3 preços), a análise usa só o desconto da página: 15% ou mais →
+`comprar`; entre 5% e 15% → `neutro` (ou `esperar`, se a Black Friday estiver perto); sem
+desconto → `sem_dados`. O campo `base` da resposta diz de onde veio a conclusão
+(`historico`, `desconto_da_pagina` ou `sem_dados`).
 
 **Próximo passo:** quando houver semanas de preços reais, dá para treinar um classificador
 (ex.: LightGBM) que prevê "o preço vai cair ≥ 5% nos próximos 14 dias?". As `Estatisticas` que a
 análise já calcula viram as features do modelo, e basta trocar o conteúdo de `analisar()`. As
 rotas, a extensão e o app não mudam.
 
-## Colocar no servidor
+## Coletor automático de preços
 
-O repositório tem um `Dockerfile`, então qualquer serviço que rode Docker serve. Exemplo no
-**Render**:
+O [`coletor.py`](coletor.py) visita os produtos de [`coletor_produtos.txt`](coletor_produtos.txt),
+lê o preço e envia para a API, do mesmo jeito que a extensão. Rodando algumas vezes por dia, cada
+produto ganha **histórico real**. Coloquem nessa lista os produtos da apresentação!
 
-1. Crie um **PostgreSQL** (plano gratuito) e copie a *Internal Database URL*.
-2. Crie um **Web Service** apontando para este repositório (ele detecta o `Dockerfile`).
-3. Em *Environment*, defina as variáveis do [`.env.example`](.env.example):
-   - `DATABASE_URL`: a URL do passo 1
-   - `ATALA_JWT_SECRET`: um valor aleatório longo. **Obrigatório**: sem ele os logins caem a
-     cada reinício. Gere com `python -c "import secrets; print(secrets.token_urlsafe(48))"`
-4. Depois do deploy, para ter os dados de demonstração, rode `python seed.py` no *Shell* do serviço.
-5. Na extensão, troque `http://127.0.0.1:8000` pela URL do serviço e adicione essa URL em
-   `host_permissions` no `manifest.json`.
+```bash
+python coletor.py --simular
+```
+
+```bash
+python coletor.py --api https://atala-ia-back.onrender.com
+```
+
+O `--simular` só mostra o que leu, sem enviar nada. Sem `--api`, envia para o backend local.
+
+**Lojas:** funciona com a **KaBuM** (testado com 32 produtos). Amazon, Mercado Livre, Magalu, Casas
+Bahia, Pichau e Terabyte bloqueiam robôs: os preços delas entram quando alguém abre o produto
+pela extensão.
+
+**Agendamento (escolha um):**
+
+- **GitHub Actions** (recomendado, roda mesmo com o PC desligado): o arquivo
+  [`.github/workflows/coletor.yml`](.github/workflows/coletor.yml) roda o coletor 4 vezes por dia
+  (23h, 5h, 11h e 17h de Brasília). Confira se o endereço `ATALA_API_URL` nele é o do seu serviço
+  no Render. Para rodar na hora: aba **Actions** → **Coletar preços** → **Run workflow**.
+- **Agendador de Tarefas do Windows** (reserva, caso a loja bloqueie os servidores do GitHub):
+
+  ```bash
+  .\agendar_coletor_windows.ps1 -Api "https://atala-ia-back.onrender.com"
+  ```
+
+  Coleta a cada 6 horas enquanto o PC estiver ligado e grava o resultado em `coletor.log`.
+
+## Servidor gratuito (Render + Neon)
+
+- **Render** roda a API (plano gratuito). Ele "dorme" após 15 minutos sem uso: a primeira chamada
+  depois disso demora até 1 minuto (a extensão mostra "Acordando o servidor…").
+- **Neon** guarda o banco PostgreSQL (plano gratuito, sem data para expirar). O banco gratuito do
+  próprio Render é apagado depois de 30 dias, por isso usamos o Neon.
+
+### 1. Banco no Neon
+
+1. Crie uma conta em [neon.tech](https://neon.tech) e um projeto (ex.: `atala`, região São Paulo
+   se houver, ou a mais próxima).
+2. Em **Connect**, copie a *connection string* (começa com `postgresql://` e termina com
+   `?sslmode=require`). Guarde: ela é a senha do banco, **não coloque no código nem no GitHub**.
+
+### 2. API no Render
+
+1. Crie uma conta em [render.com](https://render.com) → **New** → **Web Service**.
+2. Escolha **Public Git Repository** e cole `https://github.com/AnaBia-31/atala-ia-back`
+   (ou conecte o GitHub da dona do repositório, para o deploy acontecer sozinho a cada push).
+3. Configure:
+   - **Name:** `atala-ia-back` (vira o endereço `https://atala-ia-back.onrender.com`; se o nome
+     estiver ocupado, o Render acrescenta letras, e aí é preciso atualizar a extensão e o
+     `coletor.yml`)
+   - **Language/Runtime:** Docker · **Instance type:** Free
+   - **Environment Variables:**
+     - `DATABASE_URL` = a connection string do Neon
+     - `ATALA_JWT_SECRET` = um valor aleatório longo, gerado com
+       `python -c "import secrets; print(secrets.token_urlsafe(48))"`
+4. **Create Web Service** e espere o deploy terminar (alguns minutos). Teste abrindo
+   `https://SEU-SERVICO.onrender.com/docs`.
+
+> Alternativa: **New → Blueprint** usa o [`render.yaml`](render.yaml) e já configura tudo (gera a
+> `ATALA_JWT_SECRET` sozinho e só pede a `DATABASE_URL`).
+
+### 3. Ligar as peças
+
+1. **Extensão:** em `src/config.js` do repositório da extensão, troque `ATALA_API_URL` pelo endereço
+   do Render e recarregue a extensão em `chrome://extensions`.
+2. **Coletor:** confira o endereço em `.github/workflows/coletor.yml` e rode uma vez pela aba
+   **Actions** para testar.
+3. **Dados de demonstração (opcional):** o plano gratuito do Render não tem terminal, então rode o
+   seed do seu PC apontando para o Neon:
+
+   ```bash
+   $env:DATABASE_URL="COLE-A-CONNECTION-STRING-DO-NEON"; python seed.py
+   ```
 
 As tabelas são criadas sozinhas na primeira vez que a API sobe. Se a estrutura das tabelas
 mudar depois que houver dados reais, será preciso uma migração (ex.: Alembic). Até a
@@ -136,8 +227,9 @@ apresentação, dá para simplesmente apagar e recriar o banco.
 ## Ainda não feito
 
 - **Limite de tentativas de login** (proteção contra força bruta) e **recuperação de senha**.
-- **Notificação push no celular** (ex.: Firebase Cloud Messaging). Por enquanto o app/extensão
-  consulta `GET /alertas/pendentes` de tempos em tempos.
-- **Coleta automática de preços no servidor.** Hoje o preço só é atualizado quando alguém abre
-  o produto pela extensão.
+- **Notificação push no celular** (ex.: Firebase Cloud Messaging). Por enquanto o app consulta
+  `GET /alertas/pendentes` de tempos em tempos.
+- **Coleta de lojas que bloqueiam robôs** (Amazon, Mercado Livre...). O Mercado Livre tem uma
+  API oficial, mas ela exige cadastrar um aplicativo no portal de desenvolvedores e usar token.
 - **Resumo semanal** por e-mail (a preferência já é salva, mas nada é enviado).
+- **Proteção da rota `/produtos/observar`**: hoje qualquer um pode enviar preços para ela.

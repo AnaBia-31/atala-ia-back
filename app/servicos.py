@@ -52,7 +52,7 @@ def preco_atual(db: Session, produto: Produto) -> float | None:
 def analisar_produto(db: Session, produto: Produto) -> Analise:
     pontos = [(p.coletado_em, p.preco) for p in historico(db, produto, dias=60)]
     atual = pontos[-1][1] if pontos else 0.0
-    return analisar(pontos, atual, agora=agora())
+    return analisar(pontos, atual, agora=agora(), preco_original=produto.preco_original)
 
 
 def registrar_preco(db: Session, produto: Produto, preco: float) -> None:

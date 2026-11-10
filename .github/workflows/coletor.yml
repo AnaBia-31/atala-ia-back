@@ -1,0 +1,35 @@
+# Roda o coletor de preços (coletor.py) automaticamente, 4 vezes por dia,
+# nos servidores do GitHub (funciona mesmo com todos os PCs desligados).
+#
+# Para rodar na hora: aba "Actions" do repositório -> "Coletar preços" -> "Run workflow".
+# Os resultados de cada execução aparecem nessa mesma aba.
+
+name: Coletar preços
+
+on:
+  schedule:
+    # Horários em UTC. 02h, 08h, 14h e 20h UTC = 23h, 05h, 11h e 17h em Brasília.
+    # O GitHub pode atrasar alguns minutos em horários de pico.
+    - cron: "17 2,8,14,20 * * *"
+  workflow_dispatch:
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Endereço do backend no Render. Se o seu serviço tiver outro nome, troque aqui
+      # (ou crie a variável de repositório ATALA_API_URL em Settings -> Variables).
+      ATALA_API_URL: ${{ vars.ATALA_API_URL || 'https://atala-ia-back.onrender.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Instalar dependências do coletor
+        run: pip install httpx==0.28.1
+
+      - name: Coletar preços
+        run: python coletor.py

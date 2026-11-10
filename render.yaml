@@ -1,0 +1,15 @@
+# Configuração do Render (opcional: dá para criar o serviço pelo painel, veja o README).
+# Com este arquivo, "New -> Blueprint" no Render cria o serviço já configurado.
+services:
+  - type: web
+    name: atala-ia-back
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      # Endereço do PostgreSQL do Neon (o Render vai pedir para você colar).
+      - key: DATABASE_URL
+        sync: false
+      # Chave dos tokens de login: o Render gera um valor aleatório sozinho.
+      - key: ATALA_JWT_SECRET
+        generateValue: true

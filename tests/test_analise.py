@@ -60,3 +60,43 @@ def test_perto_da_black_friday_sugere_esperar():
     a = analisar(pontos, 104.0, agora=perto_bf)
     assert a.veredito == "esperar"
     assert any("Black Friday" in m for m in a.motivos)
+
+
+# ---- Primeira visita: desconto anunciado pela página ----
+
+def test_primeira_visita_com_desconto_grande_indica_compra():
+    a = analisar(serie([80.0]), 80.0, agora=AGORA, preco_original=100.0)
+    assert a.veredito == "comprar"
+    assert a.base == "desconto_da_pagina"
+    assert a.estatisticas.desconto_pct == 20.0
+    assert any("20% de desconto" in m for m in a.motivos)
+
+
+def test_primeira_visita_com_desconto_pequeno_e_neutra():
+    a = analisar(serie([92.0]), 92.0, agora=AGORA, preco_original=100.0)
+    assert a.veredito == "neutro"
+
+
+def test_primeira_visita_desconto_pequeno_perto_da_black_friday():
+    perto_bf = datetime(2026, 11, 10, 12, 0)
+    a = analisar([(perto_bf, 92.0)], 92.0, agora=perto_bf, preco_original=100.0)
+    assert a.veredito == "esperar"
+
+
+def test_primeira_visita_sem_desconto_continua_sem_dados():
+    a = analisar(serie([80.0]), 80.0, agora=AGORA)
+    assert a.veredito == "sem_dados"
+    assert a.base == "sem_dados"
+
+
+def test_preco_original_menor_que_atual_e_ignorado():
+    a = analisar(serie([80.0]), 80.0, agora=AGORA, preco_original=70.0)
+    assert a.veredito == "sem_dados"
+    assert a.estatisticas.preco_original is None
+
+
+def test_com_historico_a_base_e_o_historico():
+    precos = [120, 118, 125, 122, 119, 121, 124, 120, 118, 117, 122, 121, 119, 100]
+    a = analisar(serie(precos), 100.0, agora=AGORA, preco_original=150.0)
+    assert a.base == "historico"
+    assert a.veredito == "comprar"

@@ -1,0 +1,57 @@
+# Produtos que o coletor (coletor.py) visita algumas vezes por dia.
+# Uma URL por linha. Linhas começando com # são comentários.
+#
+# Coloquem aqui os produtos que vão aparecer na apresentação!
+# Funciona bem com a KaBuM. Amazon, Mercado Livre, Magalu e outras lojas
+# bloqueiam robôs: os preços delas entram quando alguém abre o produto pela extensão.
+#
+# Lista inicial: produtos populares da KaBuM em novembro/2026.
+
+# Fones de ouvido
+https://www.kabum.com.br/produto/698163/fone-de-ouvido-sem-fio-jbl-beam-2-cancelamento-de-ruido-ip54-ate-40-horas-de-bateria-bluetooth-preto-jblwbeam2blk
+https://www.kabum.com.br/produto/690301/fone-de-ouvido-jbl-wave-buds-2-cancelamento-de-ruido-bateria-ate-40-horas-bluetooth-5-3-conexao-multipontos-ip54-preto-jblwbuds2blk
+https://www.kabum.com.br/produto/1004896/fone-de-ouvido-on-ear-jbl-tune-530bt-bluetooth-bateria-longa-duracao-som-pure-bass-preto-jblt530btblkbr
+https://www.kabum.com.br/produto/1036663/fone-de-ouvido-headphone-soundcore-q30-bluetooth-preto
+
+# Mouses
+https://www.kabum.com.br/produto/904345/mouse-gamer-sem-fio-attack-shark-x11-com-base-de-carregamento-magnetico-rgb-tri-mode-22-000-dpi-sensor-optico-paw3311-5-botoes-preto
+https://www.kabum.com.br/produto/904346/mouse-gamer-sem-fio-attack-shark-x11-com-base-de-carregamento-magnetico-rgb-tri-mode-22-000-dpi-sensor-optico-paw3311-5-botoes-branco
+https://www.kabum.com.br/produto/610298/mouse-gamer-sem-fio-redragon-invader-pro-rgb-10000-dpi-8-botoes-wireless-preto-m719rgb-pro
+https://www.kabum.com.br/produto/94555/mouse-gamer-redragon-cobra-chroma-rgb-12400-dpi-8-botoes-preto-m711
+
+# Teclados
+https://www.kabum.com.br/produto/93160/teclado-mecanico-gamer-redragon-kumara-anti-ghosting-rgb-switch-outemu-brown-abnt2-preto-pt-k552rgb-1-pt-brown-
+https://www.kabum.com.br/produto/538690/teclado-mecanico-gamer-husky-anchorage-full-size-rgb-switch-gateron-ef-brown-abnt2-preto-htg200ptma
+https://www.kabum.com.br/produto/531158/teclado-mecanico-gamer-machenike-k500b-b87-switch-brown-abnt-azul-ref-jj02g200a
+https://www.kabum.com.br/produto/904397/teclado-magnetico-gamer-attack-shark-x82-he-75-rapid-trigger-8000hz-0-01mm-contour-line-preto-e-cinza-as-x82he-cl
+
+# Headsets
+https://www.kabum.com.br/produto/519934/headset-gamer-sem-fio-havit-fuxi-h3-7-1-surround-driver-40mm-bluetooth-e-usb-preto-fuxi-h3-black
+https://www.kabum.com.br/produto/102770/headset-gamer-havit-drivers-53mm-microfone-plugavel-3-5mm-pc-ps4-xbox-one-preto-hv-h2002d
+https://www.kabum.com.br/produto/1020026/headset-gamer-sem-fio-attack-shark-l80-pro-bluetooth-som-surround-7-1-preto-l80pro
+https://www.kabum.com.br/produto/508106/headset-gamer-sem-fio-redragon-zeus-pro-7-1-driver-53mm-bluetooth-preto-h510-pro
+
+# SSDs
+https://www.kabum.com.br/produto/105104/ssd-rise-mode-gamer-line-120gb-sata-iii-leitura-530mb-s-gravacao-520mb-s-preto-rm-ssd-120
+https://www.kabum.com.br/produto/621162/ssd-kingston-nv3-1-tb-m-2-2280-pcie-4-0-x4-nvme-leitura-6000-mb-s-gravacao-4000-mb-s-azul-snv3s-1000g
+https://www.kabum.com.br/produto/633107/ssd-kingston-1tb-padrao-nv3-m-2-2280-nvme-4-0-gen-4x4-leitura-6000-e-gravacao-4000mbps-ultra-rapido-snv3s-1000g
+https://www.kabum.com.br/produto/105105/ssd-rise-mode-gamer-line-240gb-sata-iii-leitura-530mb-s-gravacao-520mb-s-preto-rm-ssd-240
+
+# Monitores
+https://www.kabum.com.br/produto/1017202/monitor-gamer-asus-tuf-gaming-series-5-27-full-hd-fast-ips-260hz-03ms-hdr10-freesync-preto-vg279qm5f
+https://www.kabum.com.br/produto/1017201/monitor-gamer-asus-tuf-23-8-full-hd-260hz-0-3ms-fast-ips-vrr-g-sync-comp-freesync-premium-hdr10-som-integrado-preto-vg249qm5f
+https://www.kabum.com.br/produto/1017203/monitor-gamer-asus-tuf-27-qhd-255hz-0-3ms-fast-ips-g-sync-comp-freesync-premium-hdr10-som-integrado-vg27aqme5f
+https://www.kabum.com.br/produto/952751/monitor-gamer-curvo-asus-tuf-34-wqhd-250hz-0-5ms-fast-va-freesync-premium-altura-ajustavel-som-integrado-preto-vg34wqml5a
+
+# Smartwatches
+https://www.kabum.com.br/produto/233659/smartwatch-husky-sports-700-gps-preto-pulseira-extra-verde-escuro-com-gps-hsph001
+https://www.kabum.com.br/produto/534181/smartwatch-samsung-galaxy-fit3-40-0mm-display-1-6-grafite
+https://www.kabum.com.br/produto/235813/smartwatch-kabum-smart-700-preto-pulseira-extra-cinza-claro-compativel-iot-alexa-kbsac019
+https://www.kabum.com.br/produto/708065/smartwatch-redmi-watch-5-active-tela-lcd-2-60hz-18-dias-bateria-relogio-inteligente-compativel-com-alexa-preto
+
+# Controles
+https://www.kabum.com.br/produto/1032835/controle-sem-fio-sony-dualsense-playstation-5-bluetooth-midnight-black-cfi-zct2w
+https://www.kabum.com.br/produto/1032834/controle-sem-fio-sony-dualsense-playstation-5-bluetooth-branco-3005767
+https://www.kabum.com.br/produto/1080805/controle-sem-fio-sony-dualsense-edicao-limitada-gran-turismo-ps5-pc-bluetooth-usb-c-1000056957
+https://www.kabum.com.br/produto/989702/console-sony-playstation-5-ssd-825gb-controle-sem-fio-dualsense-2-jogos-digitais-edicao-digital
+

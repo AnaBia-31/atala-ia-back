@@ -26,6 +26,9 @@ LIMITE_COMPRAR = 0.25
 LIMITE_ESPERAR = -0.25
 DIAS_ANTES_BLACK_FRIDAY = 21
 VARIACAO_MINIMA_RELEVANTE = 0.05  # 5% entre o mínimo e o máximo do mês
+# Desconto sobre o preço riscado da página ("de R$ X por R$ Y")
+DESCONTO_BOM = 15     # % a partir do qual o desconto, sozinho, já indica compra
+DESCONTO_MINIMO = 5   # % abaixo disso o "desconto" é irrelevante
 
 TITULOS = {
     "comprar": "Bom momento para comprar",
@@ -77,11 +80,14 @@ def analisar(
     historico: list[tuple[datetime, float]],
     preco_atual: float,
     agora: datetime | None = None,
+    preco_original: float | None = None,
 ) -> Analise:
     """Analisa o histórico de preços de um produto.
 
     historico: lista de (data da coleta, preço), em qualquer ordem.
     preco_atual: o preço que o usuário está vendo agora.
+    preco_original: o preço riscado que a loja mostra ("de R$ X"), se houver.
+        Permite dar uma resposta já na primeira visita, quando ainda não há histórico.
     """
     agora = agora or datetime.now()
     historico = sorted(historico)
@@ -90,6 +96,9 @@ def analisar(
     precos = [p for _, p in janela]
 
     tendencia = _tendencia_semanal_pct(recentes)
+    if preco_original is not None and preco_original <= preco_atual:
+        preco_original = None  # "preço original" menor que o atual não é desconto
+    desconto = -_pct(preco_atual, preco_original) if preco_original else None
     stats = Estatisticas(
         preco_atual=round(preco_atual, 2),
         minimo_30d=min(precos) if precos else None,
@@ -99,17 +108,13 @@ def analisar(
         variacao_30d_pct=round(_pct(preco_atual, precos[0]), 1) if precos else None,
         tendencia_14d_pct=round(tendencia, 1) if tendencia is not None else None,
         pontos_no_historico=len(janela),
+        preco_original=preco_original,
+        desconto_pct=round(desconto, 1) if desconto is not None else None,
     )
 
     dias_cobertos = (janela[-1][0] - janela[0][0]).days if janela else 0
     if len(janela) < MINIMO_DE_PONTOS or dias_cobertos < 2:
-        return Analise(
-            veredito="sem_dados",
-            titulo=TITULOS["sem_dados"],
-            confianca=0.0,
-            motivos=["Ainda não temos histórico suficiente deste produto. Volte em alguns dias."],
-            estatisticas=stats,
-        )
+        return _analise_sem_historico(stats, desconto, agora)
 
     minimo, maximo, mediana = stats.minimo_30d, stats.maximo_30d, stats.mediana_30d
     placar = 0.0
@@ -151,7 +156,12 @@ def analisar(
             placar += 0.15
             motivos.append("O preço vem subindo; esperar pode sair mais caro.")
 
-    # 4) Datas promocionais
+    # 4) Desconto anunciado pela loja (peso menor: o histórico é mais confiável)
+    if desconto is not None and desconto >= DESCONTO_BOM:
+        placar += 0.15
+        motivos.append(f"A loja anuncia {desconto:.0f}% de desconto sobre {_brl(preco_original)}.")
+
+    # 5) Datas promocionais
     dias_bf = _dias_ate_black_friday(agora.date())
     if 0 < dias_bf <= DIAS_ANTES_BLACK_FRIDAY and not no_minimo:
         placar -= 0.25
@@ -175,5 +185,42 @@ def analisar(
         titulo=TITULOS[veredito],
         confianca=round(min(confianca, 0.95), 2),
         motivos=motivos,
+        base="historico",
+        estatisticas=stats,
+    )
+
+
+def _analise_sem_historico(stats: Estatisticas, desconto: float | None, agora: datetime) -> Analise:
+    """Primeira visita: sem histórico, a única pista é o desconto que a própria página mostra."""
+    aviso = "Ainda não temos histórico deste produto; a análise fica mais precisa nos próximos dias."
+    if desconto is None or desconto < DESCONTO_MINIMO:
+        return Analise(
+            veredito="sem_dados",
+            titulo=TITULOS["sem_dados"],
+            confianca=0.0,
+            motivos=["Ainda não temos histórico suficiente deste produto. Volte em alguns dias."],
+            base="sem_dados",
+            estatisticas=stats,
+        )
+
+    motivos = [f"A loja anuncia {desconto:.0f}% de desconto sobre {_brl(stats.preco_original)}."]
+    dias_bf = _dias_ate_black_friday(agora.date())
+    perto_bf = 0 < dias_bf <= DIAS_ANTES_BLACK_FRIDAY
+
+    if desconto >= DESCONTO_BOM:
+        veredito, confianca = "comprar", 0.55
+    elif perto_bf:
+        veredito, confianca = "esperar", 0.5
+        motivos.append(f"O desconto é pequeno e a Black Friday é daqui a {dias_bf} dias.")
+    else:
+        veredito, confianca = "neutro", 0.4
+        motivos.append("É um desconto pequeno; pode valer acompanhar o preço.")
+    motivos.append(aviso)
+    return Analise(
+        veredito=veredito,
+        titulo=TITULOS[veredito],
+        confianca=confianca,
+        motivos=motivos,
+        base="desconto_da_pagina",
         estatisticas=stats,
     )

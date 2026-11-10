@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app import servicos
 from app.database import get_db
-from app.models import Alerta, Produto, Usuario, Visualizacao
+from app.models import Alerta, Produto, Usuario, Visualizacao, agora
 from app.schemas import ObservacaoEntrada, PontoHistorico, ProdutoDetalhe, ProdutoSaida
 from app.seguranca import usuario_opcional
 
@@ -51,11 +51,13 @@ def observar(
         db.add(produto)
     produto.titulo = dados.titulo
     produto.loja = dados.loja
+    produto.preco_original = dados.preco_original
     if dados.imagem_url:
         produto.imagem_url = str(dados.imagem_url)
     db.flush()
 
     servicos.registrar_preco(db, produto, dados.preco)
+    produto.atualizado_em = agora()  # o preço acabou de ser conferido, mesmo que nada tenha mudado
     if usuario:
         db.add(Visualizacao(usuario_id=usuario.id, produto_id=produto.id))
     db.commit()

@@ -62,6 +62,9 @@ class ObservacaoEntrada(BaseModel):
     loja: str = Field(min_length=1, max_length=100, examples=["Mercado Livre"])
     titulo: str = Field(min_length=1, max_length=500)
     preco: float = Field(gt=0)
+    preco_original: float | None = Field(
+        default=None, gt=0, description="Preço riscado mostrado pela loja ('de R$ X por R$ Y')"
+    )
     imagem_url: HttpUrl | None = None
     moeda: str = Field(default="BRL", min_length=3, max_length=3)
 
@@ -75,6 +78,8 @@ class Estatisticas(BaseModel):
     variacao_30d_pct: float | None = Field(description="Ex.: -14.0 = caiu 14% no mês")
     tendencia_14d_pct: float | None = Field(description="Inclinação recente, em % do preço por semana")
     pontos_no_historico: int
+    preco_original: float | None = None
+    desconto_pct: float | None = Field(default=None, description="Desconto anunciado pela loja, em %")
 
 
 class Analise(BaseModel):
@@ -82,6 +87,9 @@ class Analise(BaseModel):
     titulo: str = Field(description="Frase curta para o card, ex.: 'Bom momento para comprar'")
     confianca: float = Field(ge=0, le=1)
     motivos: list[str]
+    base: Literal["historico", "desconto_da_pagina", "sem_dados"] = Field(
+        description="De onde veio a conclusão: do histórico de preços ou só do desconto da página"
+    )
     estatisticas: Estatisticas
 
 
